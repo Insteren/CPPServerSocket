@@ -3,6 +3,7 @@
 #include <ws2tcpip.h>
 #include <vector>
 #include <string>
+#include <Windows.h>
 
 #pragma comment(lib, "ws2_32.lib")
 using namespace std;
@@ -68,11 +69,36 @@ bool IsConnected(int getID)
 	else return true;
 }
 
+void Input()
+{
+	char * buffer = new char[512];
+	while (true)
+	{
+		
+		cin >> buffer;
+		cout << "SENT: " << buffer << "[" << strlen(buffer) << "]" << endl;
+		int size = Players.size();
+		if (strcmp(buffer, "quit") == 0)
+		{
+			exit(0);
+		}
+		else
+		{
+			for (int i = 0; i < size; i++)
+			{
+				send(Players[i].ID, buffer, strlen(buffer), NULL);
+			}
+		}	
+	}
+}
+
+
 void Work(int getID)
 {
 	std::cout << "Thread created" << std::endl;
-	char * buffer = new char[512];
+	char buffer[512];
 	int result;
+	string rMessage = "";
 	while (IsConnected(getID) == true)
 	{
 		Sleep(50);
@@ -81,8 +107,10 @@ void Work(int getID)
 		
 		if (result > 0)
 		{
+			
 			buffer[result] = '\0';
 			std::cout << "Message from " << getID << ": " << buffer << std::endl;
+			cout << sizeof buffer << endl;
 			int size = Players.size();
 			for (int i = 0; i < size; i++)
 			{
@@ -124,7 +152,7 @@ int main()
 	{
 		printf("Could not create socket : %d", WSAGetLastError());
 	}
-
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Input, NULL, 0, NULL);
 	printf("Socket created.\n");
 
 	//Prepare the sockaddr_in structure
@@ -174,7 +202,3 @@ int main()
 
 
 }
-
-
-
-
